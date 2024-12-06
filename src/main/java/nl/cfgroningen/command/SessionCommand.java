@@ -35,6 +35,6 @@ public class SessionCommand extends GenericCommand {
 
     @Override
     public void execute(SlashCommandInteraction interaction) {
-        session.startSession(interaction);
+        session.startSession(this.dataManager, this.bot);
     }
 }

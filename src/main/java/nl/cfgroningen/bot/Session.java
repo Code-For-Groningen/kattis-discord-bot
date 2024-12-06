@@ -1,7 +1,6 @@
 package nl.cfgroningen.bot;
 
 import nl.cfgroningen.scores.UniversityScoreInformation;
-import org.javacord.api.interaction.SlashCommandInteraction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,14 +12,13 @@ public class Session {
 
     public Timer timer = new Timer();
 
-    private KattisDataManager dataManager;
-    private KattisBot bot;
     private UniversityScoreInformation oldInfo;
     private UniversityScoreInformation newInfo;
 
-    public void startSession(SlashCommandInteraction interaction){
+    public void startSession(KattisDataManager dataManager, KattisBot bot) {
         CompletableFuture<UniversityScoreInformation> future = dataManager
                 .getUniversityStats(bot.getOwningUniversityUrl());
+
 
         if (future.isDone()){
             oldInfo = future.join();
