@@ -10,11 +10,13 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -106,7 +108,7 @@ public class KattisVisualSummaryGenerator {
             int x = GRAPH_START.x + padding - 5;
             int y = GRAPH_END.y + padding - (int) (i * graphHeight / 10.0);
             g.drawString(String.valueOf((int) (minScore + (i * scoreRange / 10.0))), x - 35, y + 5); // Moved label
-                                                                                                     // lower
+            // lower
         }
 
         int colorIndex = 0;
@@ -243,7 +245,7 @@ public class KattisVisualSummaryGenerator {
     }
 
     private void drawLittleRoundedBoxWithArrowInIt(Graphics g, int x, int y, int size, Color boxColor, Color arrowColor,
-            boolean arrowUp) {
+                                                   boolean arrowUp) {
         int arrowSize = 10;
         int arrowX = x + size / 2 - arrowSize / 2;
         int arrowY = y + size / 2 - arrowSize / 2;
@@ -251,19 +253,19 @@ public class KattisVisualSummaryGenerator {
         g.fillRoundRect(x, y, size, size, 10, 10);
         g.setColor(arrowColor); // Set color to the specified arrow color
         if (arrowUp) {
-            g.fillPolygon(new int[] { arrowX, arrowX + arrowSize / 2, arrowX + arrowSize },
-                    new int[] { arrowY + arrowSize, arrowY, arrowY + arrowSize }, 3);
+            g.fillPolygon(new int[]{arrowX, arrowX + arrowSize / 2, arrowX + arrowSize},
+                    new int[]{arrowY + arrowSize, arrowY, arrowY + arrowSize}, 3);
         } else {
-            g.fillPolygon(new int[] { arrowX, arrowX + arrowSize / 2, arrowX + arrowSize },
-                    new int[] { arrowY, arrowY + arrowSize, arrowY }, 3);
+            g.fillPolygon(new int[]{arrowX, arrowX + arrowSize / 2, arrowX + arrowSize},
+                    new int[]{arrowY, arrowY + arrowSize, arrowY}, 3);
         }
     }
 
-    public BufferedImage generateVisualSummary() {
+    public byte[] generateVisualSummary() {
         List<UniversityScoreInformation> scoreInfo = new ArrayList<>();
 
-        double[] currentScores = { 100, 110, 120, 130, 140 };
-        String[] userNames = { "Mattia", "Alice", "Bob", "Charlie", "Diana" };
+        double[] currentScores = {100, 110, 120, 130, 140};
+        String[] userNames = {"Mattia", "Alice", "Bob", "Charlie", "Diana"};
         for (int i = 0; i < 30; i++) {
             List<UniversityUserInformation> users = new ArrayList<>();
             for (int j = 0; j < userNames.length; j++) {
@@ -275,19 +277,25 @@ public class KattisVisualSummaryGenerator {
                     System.currentTimeMillis() + i * 20000));
         }
 
-        BufferedImage image = new BufferedImage(1920 / 2, 1080 / 2, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage image = new BufferedImage(1920 / 2, 1080 / 2, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = (Graphics2D) image.getGraphics();
 
         // Enable antialiasing
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
         g.setColor(fromHex("#38343c"));
         g.fillRect(0, 0, image.getWidth(), image.getHeight());
 
         generateGraph(scoreInfo, g);
         writeSummaryInformation(scoreInfo, g);
 
-        return image;
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try {
+            ImageIO.write(image, "jpeg", baos);
+        } catch (Exception e) {
+            // Caca
+        }
+
+        return baos.toByteArray();
     }
 
     // public static void main(String[] args) {

@@ -1,5 +1,9 @@
 package nl.cfgroningen.command;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -84,10 +88,26 @@ public class SessionCommand extends GenericCommand {
                 return;
             }
 
-            interaction.createImmediateResponder().addEmbed(
-                    new EmbedBuilder()
-                            .setImage(this.visualSummaryGenerator.generateVisualSummary()))
-                    .respond();
+
+            try {
+                File tempFile = Files.createTempFile("rfovciujn", ".jpg").toFile();
+                FileOutputStream stream = new FileOutputStream(tempFile);
+                stream.write(this.visualSummaryGenerator.generateVisualSummary());
+                stream.close();
+
+                System.out.println(tempFile.getAbsolutePath());
+
+                interaction.createImmediateResponder()
+                        .addEmbed(new EmbedBuilder().setTitle("loading boss"))
+                        .respond()
+                        .join()
+                        .removeAllEmbeds()
+                        .addEmbed(
+                                new EmbedBuilder().setImage(tempFile)
+                        ).update();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

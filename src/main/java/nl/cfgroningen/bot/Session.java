@@ -41,7 +41,6 @@ public class Session {
                             .getUniversityStats(bot.getOwningUniversityUrl()).get(10, TimeUnit.SECONDS);
                     infos.add(info);
 
-                    System.out.println(infos);
                 } catch (Exception e) {
                     // lol
                 }
