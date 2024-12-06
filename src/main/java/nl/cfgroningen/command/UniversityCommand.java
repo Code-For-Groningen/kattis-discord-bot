@@ -37,13 +37,13 @@ public class UniversityCommand extends GenericCommand {
         if (future.isDone()) {
             UniversityScoreInformation info = future.join();
             interaction.createImmediateResponder()
-                    .addEmbed(info.toEmbed())
+                    .addEmbed(info.toEmbed(bot.getData()))
                     .respond();
         } else {
             interaction.createImmediateResponder()
                     .addEmbed(this.info("Please wait", "Retrieving university information..."))
                     .respond().thenCombine(future, (msg, info) -> {
-                        msg.removeAllEmbeds().addEmbed(info.toEmbed()).update();
+                        msg.removeAllEmbeds().addEmbed(info.toEmbed(bot.getData())).update();
                         return null;
                     });
         }

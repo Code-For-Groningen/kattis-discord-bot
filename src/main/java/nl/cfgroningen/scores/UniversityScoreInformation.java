@@ -1,9 +1,13 @@
 package nl.cfgroningen.scores;
 
+import java.awt.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import nl.cfgroningen.database.BotData;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 
 import lombok.AllArgsConstructor;
@@ -21,6 +25,7 @@ public class UniversityScoreInformation {
     private String name;
     private String url;
 
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -33,7 +38,21 @@ public class UniversityScoreInformation {
 
     private List<UniversityUserInformation> students = new ArrayList<>();
 
-    public EmbedBuilder toEmbed() {
+    private long unixMillis;
+
+    private String formatUserInformation(UniversityUserInformation s, Map<String, Long> listOfLinks) {
+        if (listOfLinks.containsKey(s.getProfileUrl())) {
+            return String.format("%d. [%s](%s) - %.2f (<@%s>)", s.rank, s.name, s.profileUrl, s.score,
+                    listOfLinks.get(s.getProfileUrl()) + "");
+        } else {
+            return String.format("%d. [%s](%s) - %.2f", s.rank, s.name, s.profileUrl, s.score);
+        }
+    }
+
+    public EmbedBuilder toEmbed(BotData data) {
+        Map<String, Long> links = new HashMap<>();
+        data.getCachedData().getDiscordIdToKattisProfileUrl().forEach((c, v) -> links.put(v, c));
+
         EmbedBuilder builder = new EmbedBuilder()
                 .setTitle("University Information")
                 .addField("Rank", String.valueOf(rank), true)
@@ -41,7 +60,7 @@ public class UniversityScoreInformation {
                 .addField("Users", String.valueOf(users), true)
                 .addField("Name", "[" + name + "](" + url + ")", true)
                 .addField("Top Students", students.stream()
-                        .map(s -> String.format("%d. [%s](%s) - %.2f", s.rank, s.name, s.profileUrl, s.score))
+                        .map(s -> formatUserInformation(s, links))
                         .limit(3)
                         .collect(Collectors.joining("\n")));
 

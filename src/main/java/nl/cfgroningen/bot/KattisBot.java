@@ -67,7 +67,8 @@ public class KattisBot {
 
     private void registerAllCommands() {
         Set<SlashCommandBuilder> builder = this.pendingCommands.stream()
-                .map(GenericCommand::getCommandDefinition).collect(Collectors.toSet());
+                .map(GenericCommand::getCommandDefinition)
+                .collect(Collectors.toSet());
 
         Set<ApplicationCommand> commands = this.client
                 .bulkOverwriteGlobalApplicationCommands(builder).join();
@@ -82,6 +83,8 @@ public class KattisBot {
         Map<String, GenericCommand> commandsByName = new HashMap<>();
         for (GenericCommand command : this.pendingCommands)
             commandsByName.put(command.getName(), command);
+
+        System.out.println(commandsByName);
 
         for (ApplicationCommand command : commands) {
             String name = command.getName();
@@ -100,6 +103,18 @@ public class KattisBot {
             GenericCommand command = commandMap.get(id);
             command.execute(interaction);
         });
+
+        // Check if session needs to be restarted
+        if (this.data.getCachedData().getSession() != null) {
+            try {
+                this.data.getCachedData().getSession().startSession(this.dataManager, this);
+            } catch (Exception e) {
+                this.data.getCachedData().getSession().stopSession();
+                this.data.getCachedData().setSession(null);
+
+                System.out.println("Failed session :(");
+            }
+        }
     }
 
     private List<GenericCommand> pendingCommands = new ArrayList<>();

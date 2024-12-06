@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import nl.cfgroningen.bot.Session;
 import nl.cfgroningen.scores.UniversityScoreInformation;
 
 @Getter
@@ -34,6 +35,8 @@ public class BotData {
         private Map<String, Long> lastUpdated = new HashMap<>();
 
         private Map<Long, String> discordIdToKattisProfileUrl = new HashMap<>();
+
+        private Session session = null;
     }
 
     private CachedData cachedData;

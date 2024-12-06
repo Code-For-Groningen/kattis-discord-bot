@@ -83,7 +83,8 @@ public class KattisApi {
                                 userScore);
                     }).collect(Collectors.toList());
 
-            return new UniversityScoreInformation(rank, score, users, universityName, universityUrl, students);
+            return new UniversityScoreInformation(rank, score, users, universityName, universityUrl, students,
+                    System.currentTimeMillis());
         });
     }
 }
