@@ -75,6 +75,7 @@ public class SessionCommand extends GenericCommand {
                 return;
             }
 
+            interaction.createImmediateResponder().addEmbed(getSessionStopped()).respond();
             bot.getData().getCachedData().setSession(null);
             bot.getData().save();
         } else if (subcommand.equalsIgnoreCase("summary")) {
