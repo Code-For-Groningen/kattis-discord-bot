@@ -6,15 +6,17 @@ import org.javacord.api.interaction.SlashCommandInteraction;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TimerTask;
+import java.util.Timer;
 import java.util.concurrent.CompletableFuture;
 
 public class Session {
 
-    public TimerTask timerTask;
+    public Timer timer = new Timer();
 
     private KattisDataManager dataManager;
     private KattisBot bot;
     private UniversityScoreInformation oldInfo;
+    private UniversityScoreInformation newInfo;
 
     public void startSession(SlashCommandInteraction interaction){
         CompletableFuture<UniversityScoreInformation> future = dataManager
@@ -23,29 +25,29 @@ public class Session {
         if (future.isDone()){
             oldInfo = future.join();
         }
-        UniversityScoreInformation newInfo = oldInfo;
+
         newInfo = deltaInfo(newInfo, oldInfo);
 
-        // TODO: Create embed
-
-        timerTask = new TimerTask() {
+        TimerTask timerTask = new TimerTask() {
             public void run() {
                 UniversityScoreInformation info;
                 CompletableFuture<UniversityScoreInformation> future = dataManager
                     .getUniversityStats(bot.getOwningUniversityUrl());
                 if (future.isDone()){
                     info = future.join();
-                    info = deltaInfo(info, oldInfo);
-
-                    // TODO: Edit embed
+                    newInfo = deltaInfo(info, oldInfo);
                 }
             }
         };
-        timerTask.run();
+        timer.schedule(timerTask, 0, 5000);
     }
 
     public void stopSession(){
-        timerTask.cancel();
+        timer.cancel();
+    }
+
+    public UniversityScoreInformation getInfo(){
+        return newInfo;
     }
 
     private UniversityScoreInformation deltaInfo(UniversityScoreInformation info, UniversityScoreInformation oldinfo){
