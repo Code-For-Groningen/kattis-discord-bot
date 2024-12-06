@@ -1,22 +1,30 @@
 package nl.cfgroningen.command;
 
-import lombok.Data;
-import nl.cfgroningen.bot.KattisBot;
-import nl.cfgroningen.bot.KattisDataManager;
-import nl.cfgroningen.bot.Session;
-import org.javacord.api.entity.message.embed.EmbedBuilder;
-import org.javacord.api.interaction.*;
-
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
+import org.javacord.api.entity.message.embed.EmbedBuilder;
+import org.javacord.api.interaction.SlashCommand;
+import org.javacord.api.interaction.SlashCommandBuilder;
+import org.javacord.api.interaction.SlashCommandInteraction;
+import org.javacord.api.interaction.SlashCommandInteractionOption;
+import org.javacord.api.interaction.SlashCommandOption;
+import org.javacord.api.interaction.SlashCommandOptionType;
+
+import nl.cfgroningen.bot.KattisBot;
+import nl.cfgroningen.bot.KattisDataManager;
+import nl.cfgroningen.bot.KattisVisualSummaryGenerator;
+import nl.cfgroningen.bot.Session;
+
 public class SessionCommand extends GenericCommand {
     private KattisDataManager dataManager;
+    private KattisVisualSummaryGenerator visualSummaryGenerator;
 
     public SessionCommand(KattisBot bot, KattisDataManager dataManager) {
         super(bot);
         this.dataManager = dataManager;
+        this.visualSummaryGenerator = new KattisVisualSummaryGenerator();
     }
 
     @Override
@@ -28,8 +36,7 @@ public class SessionCommand extends GenericCommand {
                         SlashCommandOption.create(SlashCommandOptionType.SUB_COMMAND, "stop",
                                 "Stops a coding Session"),
                         SlashCommandOption.create(SlashCommandOptionType.SUB_COMMAND, "summary",
-                                "Gives a summary of score evolution")
-                ));
+                                "Gives a summary of score evolution")));
     }
 
     @Override
@@ -75,7 +82,11 @@ public class SessionCommand extends GenericCommand {
                 interaction.createImmediateResponder().addEmbed(getSessionStopped()).respond();
                 return;
             }
-            interaction.createImmediateResponder().addEmbed(getSessionSummary()).respond();
+
+            interaction.createImmediateResponder().addEmbed(
+                    new EmbedBuilder()
+                            .setImage(this.visualSummaryGenerator.generateVisualSummary()))
+                    .respond();
         }
     }
 
@@ -83,10 +94,6 @@ public class SessionCommand extends GenericCommand {
         return new EmbedBuilder()
                 .setTitle("Something went wrong")
                 .setDescription("Something went terribly wrong");
-    }
-
-    private EmbedBuilder getSessionSummary() {
-        return this.bot.getData().getCachedData().getSession().summarySession().toEmbed(this.bot.getData());
     }
 
     private EmbedBuilder getSessionStarted() {

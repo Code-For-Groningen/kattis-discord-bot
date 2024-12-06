@@ -39,7 +39,6 @@ public class Session {
                 try {
                     UniversityScoreInformation info = dataManager
                             .getUniversityStats(bot.getOwningUniversityUrl()).get(10, TimeUnit.SECONDS);
-
                     infos.add(info);
 
                     System.out.println(infos);
@@ -56,29 +55,4 @@ public class Session {
         timer.cancel();
     }
 
-    private UniversityScoreInformation deltaInfo(UniversityScoreInformation info, UniversityScoreInformation oldinfo) {
-        // Compare students
-        List<UniversityScoreInformation.UniversityUserInformation> deltaStudents = new ArrayList<>();
-        for (UniversityScoreInformation.UniversityUserInformation student : info.getStudents()) {
-            oldinfo.getStudents().stream()
-                    .filter(oldStudent -> oldStudent.getName().equals(student.getName()))
-                    .findFirst()
-                    .ifPresentOrElse(oldStudent -> {
-                        if (!student.equals(oldStudent)) {
-                            deltaStudents.add(student);
-                        }
-                    }, () -> deltaStudents.add(student)); // New student
-        }
-        info.setStudents(deltaStudents);
-
-        return info;
-    }
-
-    public UniversityScoreInformation summarySession() {
-        UniversityScoreInformation info = this.infos.get(0);
-
-        UniversityScoreInformation lastInfo = this.infos.get(this.infos.size() - 1);
-
-        return this.deltaInfo(info, lastInfo);
-    }
 }
