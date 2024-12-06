@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import nl.cfgroningen.command.*;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.entity.intent.Intent;
@@ -18,10 +19,6 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
-import nl.cfgroningen.command.ContributeCommand;
-import nl.cfgroningen.command.GenericCommand;
-import nl.cfgroningen.command.LinkCommand;
-import nl.cfgroningen.command.UniversityCommand;
 import nl.cfgroningen.database.BotData;
 import nl.cfgroningen.kattis.KattisApi;
 
@@ -62,6 +59,7 @@ public class KattisBot {
                     this.registerCommand(new UniversityCommand(this, dataManager));
                     this.registerCommand(new LinkCommand(this));
                     this.registerCommand(new ContributeCommand(this, dataManager));
+                    this.registerCommand(new SessionCommand(this, dataManager));
 
                     this.registerAllCommands();
                 });
