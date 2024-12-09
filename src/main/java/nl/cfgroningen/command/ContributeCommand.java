@@ -1,27 +1,22 @@
 package nl.cfgroningen.command;
 
-import java.awt.Color;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import org.javacord.api.entity.message.MessageFlag;
-import org.javacord.api.entity.message.embed.EmbedBuilder;
-import org.javacord.api.interaction.SlashCommand;
-import org.javacord.api.interaction.SlashCommandBuilder;
-import org.javacord.api.interaction.SlashCommandInteraction;
-import org.javacord.api.interaction.SlashCommandOption;
-import org.javacord.api.interaction.SlashCommandOptionType;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import nl.cfgroningen.bot.KattisBot;
 import nl.cfgroningen.bot.KattisDataManager;
 import nl.cfgroningen.scores.UniversityScoreInformation;
+import org.javacord.api.entity.message.MessageFlag;
+import org.javacord.api.entity.message.embed.EmbedBuilder;
+import org.javacord.api.interaction.*;
+
+import java.awt.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class ContributeCommand extends GenericCommand {
 
@@ -41,9 +36,8 @@ public class ContributeCommand extends GenericCommand {
     public SlashCommandBuilder getCommandDefinition() {
         return SlashCommand
                 .with("contribute", "Calculate the what points actually mean for the university score!",
-                        Arrays.asList(
-                                SlashCommandOption.create(SlashCommandOptionType.DECIMAL, "points",
-                                        "The amount of points you want to calculate for!", true)));
+                        Arrays.asList(SlashCommandOption.create(SlashCommandOptionType.DECIMAL, "points",
+                                "The amount of points you want to calculate for!", true)));
     }
 
     @Data
@@ -86,18 +80,14 @@ public class ContributeCommand extends GenericCommand {
         CompletableFuture<UniversityScoreInformation> future = dataManager
                 .getUniversityStats(bot.getOwningUniversityUrl());
 
-        Function<CalculationResult, EmbedBuilder> embedGenerator = (result) -> {
-            EmbedBuilder builder = new EmbedBuilder()
-                    .setTitle("Contribution calculation")
-                    .addField("Old score", String.format("%.1f", result.getOldScore()), true)
-                    .addField("New score", String.format("%.1f", result.getNewScore()), true)
-                    .addField("User position", result.getUserPosition() == -1 ? "Not in top 50"
-                            : "#" + (result.getUserPosition() + 1), true)
-                    .setColor(Color.GREEN)
-                    .setFooter("Good luck getting the points!");
-
-            return builder;
-        };
+        Function<CalculationResult, EmbedBuilder> embedGenerator = result -> new EmbedBuilder()
+                .setTitle("Contribution calculation")
+                .addField("Old score", String.format("%.1f", result.getOldScore()), true)
+                .addField("New score", String.format("%.1f", result.getNewScore()), true)
+                .addField("User position", result.getUserPosition() == -1 ? "Not in top 50"
+                        : "#" + (result.getUserPosition() + 1), true)
+                .setColor(Color.GREEN)
+                .setFooter("Good luck getting the points!");
 
         if (!future.isDone()) {
             interaction.createImmediateResponder()

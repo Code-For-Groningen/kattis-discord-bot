@@ -1,13 +1,12 @@
 package nl.cfgroningen.bot;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.java.Log;
 import nl.cfgroningen.command.*;
+import nl.cfgroningen.database.BotData;
+import nl.cfgroningen.kattis.KattisApi;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.entity.intent.Intent;
@@ -15,12 +14,8 @@ import org.javacord.api.interaction.ApplicationCommand;
 import org.javacord.api.interaction.SlashCommandBuilder;
 import org.javacord.api.interaction.SlashCommandInteraction;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
-import nl.cfgroningen.database.BotData;
-import nl.cfgroningen.kattis.KattisApi;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Log
 @RequiredArgsConstructor
@@ -53,8 +48,8 @@ public class KattisBot {
         new DiscordApiBuilder()
                 .setToken(token)
                 .addIntents(Intent.GUILD_MEMBERS)
-                .login().thenAcceptAsync((client) -> {
-                    this.client = client;
+                .login().thenAcceptAsync(loggedInClient -> {
+                    this.client = loggedInClient;
 
                     this.registerCommand(new UniversityCommand(this, dataManager));
                     this.registerCommand(new LinkCommand(this));
@@ -73,7 +68,7 @@ public class KattisBot {
         Set<ApplicationCommand> commands = this.client
                 .bulkOverwriteGlobalApplicationCommands(builder).join();
 
-        System.out.println("Registered " + commands.size() + " commands");
+        log.info("Registered " + commands.size() + " commands");
 
         for (GenericCommand command : this.pendingCommands)
             command.register();
@@ -83,8 +78,6 @@ public class KattisBot {
         Map<String, GenericCommand> commandsByName = new HashMap<>();
         for (GenericCommand command : this.pendingCommands)
             commandsByName.put(command.getName(), command);
-
-        System.out.println(commandsByName);
 
         for (ApplicationCommand command : commands) {
             String name = command.getName();
@@ -106,18 +99,17 @@ public class KattisBot {
 
         // Check if session needs to be restarted
         if (this.data.getCachedData().getSession() != null) {
-            try {
-                this.data.getCachedData().getSession().startSession(this.dataManager, this);
-            } catch (Exception e) {
-                this.data.getCachedData().getSession().stopSession();
+            SessionCommand sessionCommand = (SessionCommand) commandsByName.get("session");
+            if (!sessionCommand.startSession(null, this.data.getCachedData().getSession())) {
+                this.data.getCachedData().getSession().stopSession(this);
                 this.data.getCachedData().setSession(null);
 
-                System.out.println("Failed session :(");
+                log.warning("Failed to start session");
             }
         }
     }
 
-    private List<GenericCommand> pendingCommands = new ArrayList<>();
+    private final List<GenericCommand> pendingCommands = new ArrayList<>();
 
     public void registerCommand(GenericCommand command) {
         this.pendingCommands.add(command);

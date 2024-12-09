@@ -1,28 +1,14 @@
 package nl.cfgroningen.bot;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.RenderingHints;
+import nl.cfgroningen.scores.UniversityScoreInformation;
+import nl.cfgroningen.scores.UniversityScoreInformation.UniversityUserInformation;
+
+import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-
-import nl.cfgroningen.scores.UniversityScoreInformation;
-import nl.cfgroningen.scores.UniversityScoreInformation.UniversityUserInformation;
 
 public class KattisVisualSummaryGenerator {
     // private KattisBot bot;
@@ -35,7 +21,7 @@ public class KattisVisualSummaryGenerator {
     }
 
     private static Point GRAPH_START = new Point(0, 0);
-    private static Point GRAPH_END = new Point((int) ((1920 / 2) * 0.6), 1080 / 2 - 30);
+    private static Point GRAPH_END = new Point((int) ((1920 / 2.0) * 0.6), 1080 / 2 - 30);
 
     private static final int PADDING_RIGHT = 160;
     private static final List<Color> WARM_COLORS = List.of(
@@ -172,8 +158,8 @@ public class KattisVisualSummaryGenerator {
     private void writeSummaryInformation(List<UniversityScoreInformation> scoreInfo, Graphics2D g) {
         // Write name of the university
         g.setColor(Color.WHITE);
-        g.setFont(new Font("Roboto", Font.BOLD, 30));
-        g.drawString(scoreInfo.get(0).getName(), GRAPH_END.x + PADDING_RIGHT, GRAPH_START.y + 30);
+        g.setFont(new Font("Roboto", Font.BOLD, 25));
+        g.drawString(scoreInfo.get(0).getName(), GRAPH_END.x + 90, GRAPH_START.y + 30);
 
         // Write the number of users
         g.setFont(new Font("Roboto", Font.PLAIN, 20));
@@ -261,22 +247,7 @@ public class KattisVisualSummaryGenerator {
         }
     }
 
-    public byte[] generateVisualSummary() {
-        List<UniversityScoreInformation> scoreInfo = new ArrayList<>();
-
-        double[] currentScores = {100, 110, 120, 130, 140};
-        String[] userNames = {"Mattia", "Alice", "Bob", "Charlie", "Diana"};
-        for (int i = 0; i < 30; i++) {
-            List<UniversityUserInformation> users = new ArrayList<>();
-            for (int j = 0; j < userNames.length; j++) {
-                users.add(new UniversityUserInformation(j + 1, userNames[j],
-                        "https://open.kattis.com/users/" + userNames[j].toLowerCase(), currentScores[j]));
-                currentScores[j] += Math.random() * 10;
-            }
-            scoreInfo.add(new UniversityScoreInformation(123 - i, 100 + i, 1, "rug bois", "https://google.com", users,
-                    System.currentTimeMillis() + i * 20000));
-        }
-
+    public BufferedImage generateVisualSummary(List<UniversityScoreInformation> scoreInfo) {
         BufferedImage image = new BufferedImage(1920 / 2, 1080 / 2, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = (Graphics2D) image.getGraphics();
 
@@ -288,42 +259,10 @@ public class KattisVisualSummaryGenerator {
         generateGraph(scoreInfo, g);
         writeSummaryInformation(scoreInfo, g);
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try {
-            ImageIO.write(image, "jpeg", baos);
-        } catch (Exception e) {
-            // Caca
-        }
+        g.dispose();
 
-        return baos.toByteArray();
+        return image;
     }
-
-    // public static void main(String[] args) {
-    // KattisVisualSummaryGenerator generator = new KattisVisualSummaryGenerator();
-
-    // JFrame frame = new JFrame();
-    // frame.getContentPane().setLayout(new FlowLayout());
-    // frame.getContentPane().add(new JLabel(new
-    // ImageIcon(generator.generateVisualSummary())));
-    // frame.pack();
-    // frame.setLocation(200, 200);
-    // frame.setVisible(true);
-    // frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-    // while (true) {
-    // frame.getContentPane().removeAll();
-    // frame.getContentPane().add(new JLabel(new
-    // ImageIcon(generator.generateVisualSummary())));
-    // frame.revalidate();
-    // frame.repaint();
-
-    // try {
-    // Thread.sleep(1000);
-    // } catch (InterruptedException e) {
-    // e.printStackTrace();
-    // }
-    // }
-    // }
 
     private UniversityScoreInformation deltaInfo(UniversityScoreInformation info, UniversityScoreInformation oldinfo) {
         // Compare students

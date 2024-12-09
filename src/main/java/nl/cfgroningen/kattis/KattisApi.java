@@ -1,16 +1,15 @@
 package nl.cfgroningen.kattis;
 
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-
+import nl.cfgroningen.scores.UniversityScoreInformation;
+import nl.cfgroningen.scores.UniversityScoreInformation.UniversityUserInformation;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
-import nl.cfgroningen.scores.UniversityScoreInformation;
-import nl.cfgroningen.scores.UniversityScoreInformation.UniversityUserInformation;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class KattisApi {
     public CompletableFuture<UniversityScoreInformation> getUniversityScoreInformation(String universityUrl) {
@@ -82,6 +81,9 @@ public class KattisApi {
                         return new UniversityScoreInformation.UniversityUserInformation(userRank, userName, profileUrl,
                                 userScore);
                     }).collect(Collectors.toList());
+
+            System.out.println("Parsed university information for " + universityName);
+            System.out.println(users);
 
             return new UniversityScoreInformation(rank, score, users, universityName, universityUrl, students,
                     System.currentTimeMillis());

@@ -52,7 +52,7 @@ public class UniversityScoreInformation {
         Map<String, Long> links = new HashMap<>();
         data.getCachedData().getDiscordIdToKattisProfileUrl().forEach((c, v) -> links.put(v, c));
 
-        EmbedBuilder builder = new EmbedBuilder()
+        return new EmbedBuilder()
                 .setTitle("University Information")
                 .addField("Rank", String.valueOf(rank), true)
                 .addField("Score", String.valueOf(score), true)
@@ -62,7 +62,5 @@ public class UniversityScoreInformation {
                         .map(s -> formatUserInformation(s, links))
                         .limit(3)
                         .collect(Collectors.joining("\n")));
-
-        return builder;
     }
 }
