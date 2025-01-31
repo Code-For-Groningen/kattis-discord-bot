@@ -87,24 +87,22 @@ public class API {
             Player cur = new Player();
             cur.currentScore = i.getScore();
             cur.playerName = i.getName();
-            
-            ListIterator<UniversityScoreInformation> cacheiter = scores.listIterator();
             Vector<PlayerScoreHistory> histories = new Vector<>();
-            while (cacheiter.hasNext()) {
-                UniversityUserInformation curscore = null;
-                var curglob = cacheiter.next();
-                for (UniversityUserInformation s: curglob.getStudents()) {
-                    if (s.getName() == i.getName()) {
-                        curscore = s;
+            for (var curglob: scores) {
+                UniversityUserInformation curstd = null;
+                for (var s: curglob.getStudents()) {
+                    if (s.getName().equals(cur.playerName)) {
+                        curstd = s;
                         break;
                     }
                 }
-                if (curscore == null) {
+                if (curstd == null) {
+                    System.err.println("grah");
                     continue;
                 }
-                PlayerScoreHistory history = new PlayerScoreHistory();
+                var history = new PlayerScoreHistory();
                 history.date = curglob.getUnixMillis();
-                history.score = curscore.getScore();
+                history.score = curstd.getScore();
                 histories.add(history);
             }
             cur.scoreHistory = histories.toArray(PlayerScoreHistory[]::new);
