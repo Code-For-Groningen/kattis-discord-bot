@@ -1,5 +1,6 @@
 package nl.cfgroningen.command;
 
+import nl.cfgroningen.bot.KattisBot;
 import org.javacord.api.entity.message.MessageFlag;
 import org.javacord.api.entity.message.component.ActionRow;
 import org.javacord.api.entity.message.component.TextInput;
@@ -8,8 +9,6 @@ import org.javacord.api.interaction.ModalInteraction;
 import org.javacord.api.interaction.SlashCommand;
 import org.javacord.api.interaction.SlashCommandBuilder;
 import org.javacord.api.interaction.SlashCommandInteraction;
-
-import nl.cfgroningen.bot.KattisBot;
 
 public class LinkCommand extends GenericCommand {
     public LinkCommand(KattisBot bot) {
@@ -53,8 +52,9 @@ public class LinkCommand extends GenericCommand {
                         .addEmbed(this.success("Linking complete!", "Your Kattis account has been linked!"))
                         .respond();
 
-                bot.getData().getCachedData().getDiscordIdToKattisProfileUrl().put(interaction.getUser().getId(),
-                        kattisUrl);
+                bot.getData().getCachedData()
+                        .getDiscordIdToKattisProfileUrl()
+                        .put(interaction.getUser().getId(), kattisUrl);
                 bot.getData().save();
             }
         });
@@ -62,12 +62,8 @@ public class LinkCommand extends GenericCommand {
 
     @Override
     public void execute(SlashCommandInteraction interaction) {
-        interaction.respondWithModal(
-                "kattisLinkAccount", "Paste your Kattis account URL here!",
-                ActionRow.of(
-                        TextInput.create(TextInputStyle.SHORT, "kattisUrl",
-                                "Profile URL (/users/profile)")))
-                .join();
-        System.out.println("running!!!");
+        interaction.respondWithModal("kattisLinkAccount", "Paste your Kattis account URL here!",
+                ActionRow.of(TextInput.create(TextInputStyle.SHORT, "kattisUrl",
+                        "Profile URL (/users/profile)"))).join();
     }
 }

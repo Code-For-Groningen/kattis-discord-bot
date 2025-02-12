@@ -1,12 +1,12 @@
 package nl.cfgroningen.bot;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.java.Log;
+import nl.cfgroningen.command.*;
+import nl.cfgroningen.database.BotData;
+import nl.cfgroningen.kattis.KattisApi;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.entity.intent.Intent;
@@ -14,19 +14,10 @@ import org.javacord.api.interaction.ApplicationCommand;
 import org.javacord.api.interaction.SlashCommandBuilder;
 import org.javacord.api.interaction.SlashCommandInteraction;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
-import nl.cfgroningen.command.ContributeCommand;
-import nl.cfgroningen.command.GenericCommand;
-import nl.cfgroningen.command.LinkCommand;
-import nl.cfgroningen.command.UniversityCommand;
-import nl.cfgroningen.database.BotData;
-import nl.cfgroningen.kattis.KattisApi;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Log
-@RequiredArgsConstructor
 public class KattisBot {
     @NonNull
     private String token;
@@ -40,28 +31,34 @@ public class KattisBot {
     @Getter
     private KattisApi kattisApi;
 
+    @Getter
     private KattisDataManager dataManager;
 
     @NonNull
     @Getter
     private String owningUniversityUrl;
 
-    public void initialize() {
+    public KattisBot(String token, String owningUniversityUrl) {
+        this.token = token;
+        this.owningUniversityUrl = owningUniversityUrl;
+
         this.data = BotData.load();
         this.kattisApi = new KattisApi();
-
         this.dataManager = new KattisDataManager(this);
+    }
 
+    public void initialize() {
         // Create a new instance of the bot
         new DiscordApiBuilder()
                 .setToken(token)
                 .addIntents(Intent.GUILD_MEMBERS)
-                .login().thenAcceptAsync((client) -> {
-                    this.client = client;
+                .login().thenAcceptAsync(loggedInClient -> {
+                    this.client = loggedInClient;
 
                     this.registerCommand(new UniversityCommand(this, dataManager));
                     this.registerCommand(new LinkCommand(this));
                     this.registerCommand(new ContributeCommand(this, dataManager));
+                    this.registerCommand(new SessionCommand(this, dataManager));
 
                     this.registerAllCommands();
                 });
@@ -69,12 +66,13 @@ public class KattisBot {
 
     private void registerAllCommands() {
         Set<SlashCommandBuilder> builder = this.pendingCommands.stream()
-                .map(GenericCommand::getCommandDefinition).collect(Collectors.toSet());
+                .map(GenericCommand::getCommandDefinition)
+                .collect(Collectors.toSet());
 
         Set<ApplicationCommand> commands = this.client
                 .bulkOverwriteGlobalApplicationCommands(builder).join();
 
-        System.out.println("Registered " + commands.size() + " commands");
+        log.info("Registered " + commands.size() + " commands");
 
         for (GenericCommand command : this.pendingCommands)
             command.register();
@@ -102,9 +100,20 @@ public class KattisBot {
             GenericCommand command = commandMap.get(id);
             command.execute(interaction);
         });
+
+        // Check if session needs to be restarted
+        if (this.data.getCachedData().getSession() != null) {
+            SessionCommand sessionCommand = (SessionCommand) commandsByName.get("session");
+            if (!sessionCommand.startSession(null, this.data.getCachedData().getSession())) {
+                this.data.getCachedData().getSession().stopSession(this);
+                this.data.getCachedData().setSession(null);
+
+                log.warning("Failed to start session");
+            }
+        }
     }
 
-    private List<GenericCommand> pendingCommands = new ArrayList<>();
+    private final List<GenericCommand> pendingCommands = new ArrayList<>();
 
     public void registerCommand(GenericCommand command) {
         this.pendingCommands.add(command);
