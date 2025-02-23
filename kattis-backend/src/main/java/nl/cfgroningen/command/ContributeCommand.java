@@ -113,33 +113,26 @@ public class ContributeCommand extends GenericCommand {
             return Map.entry(c.getProfileUrl(), c.getScore());
         }).collect(Collectors.toList());
 
-        // Check if the user exists in there
-        if (scores.stream().noneMatch(e -> e.getKey().equals(userUrl))) {
-            // Check if the users score is higher than the lowest score
-            if (scores.size() < 50 || scores.get(49).getValue() < points) {
-                scores.add(Map.entry(userUrl, points));
-            } else {
-                // They would have no effect
-                return new CalculationResult(info.getScore(), info.getScore(), -1, false, false);
+        // Remove the user if they exist
+        for (int i = 0; i < scores.size(); i++) {
+            if (scores.get(i).getKey().equals(userUrl)) {
+                scores.remove(i);
+                break;
             }
         }
 
+        // Add the user back in
+        scores.add(Map.entry(userUrl, points));
+
+        // Sort the scores
+        scores.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
+
+        // If bigger than 50 we need to remove the last one
         boolean bumped = false;
         if (scores.size() > 50) {
             scores.remove(scores.size() - 1);
             bumped = true;
         }
-
-        // Find the user and increment his score
-        for (int i = 0; i < scores.size(); i++) {
-            if (scores.get(i).getKey().equals(userUrl)) {
-                scores.set(i, Map.entry(userUrl, scores.get(i).getValue() + points));
-                break;
-            }
-        }
-
-        // Sort the scores
-        scores.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
 
         // Find the current position of the user
         int userPosition = -1;
