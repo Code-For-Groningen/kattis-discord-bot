@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import lombok.extern.java.Log;
 import nl.cfgroningen.scores.UniversityScoreInformation;
+import nl.cfgroningen.scores.UniversityScoreInformation.UniversityUserInformation;
+
 import org.javacord.api.entity.Deletable;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 
@@ -24,6 +26,7 @@ public class Session {
     private Timer timer = new Timer();
 
     private List<UniversityScoreInformation> infos = new ArrayList<>();
+    private Map<String, UniversityUserInformation> init;
 
     private Set<Map.Entry<Long, Long>> summaryMessageIds = new HashSet<>();
 
@@ -37,6 +40,14 @@ public class Session {
             // Update the session with the latest information
             dataManager.getFreshUniversityStats(bot.getOwningUniversityUrl()).whenComplete((i, e) -> {
                 if (e == null) {
+                    if (infos.size() > 10) {
+                        infos.remove(0);
+                    }
+                    for (UniversityUserInformation student : i.getStudents()) {
+                        student.setScore(
+                            student.getScore() - init.get(student.getName()).getScore()
+                        );
+                    }
                     infos.add(i);
                 } else {
                     log.warning("Failed to fetch university stats: " + e.getMessage());
@@ -86,7 +97,11 @@ public class Session {
 
         // To even start the session we need at least the first info
         UniversityScoreInformation info = future.get(10, TimeUnit.SECONDS);
-        infos.add(info);
+        init = new HashMap<String, UniversityUserInformation>();
+        for (UniversityUserInformation student : info.getStudents()) {
+            init.put(student.getName(), student);
+            student.setScore(0); //set delta
+        }
 
         timer.schedule(new InformationFetcher(dataManager, bot), 0, 5000);
         timer.schedule(new SummaryUpdater(bot, summaryGenerator, embedBuilderFunction), 0, 10000);

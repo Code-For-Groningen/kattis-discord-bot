@@ -2,7 +2,6 @@ package nl.cfgroningen.bot;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 import nl.cfgroningen.command.*;
 import nl.cfgroningen.database.BotData;

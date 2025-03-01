@@ -8,10 +8,7 @@ import nl.cfgroningen.bot.Session;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.interaction.*;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Arrays;

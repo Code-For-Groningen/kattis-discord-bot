@@ -1,8 +1,8 @@
 package nl.cfgroningen.api;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import express.Express;
+import express.middleware.Middleware;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import nl.cfgroningen.bot.KattisDataManager;
@@ -45,7 +45,6 @@ public class API {
     }
 
     private UniversityDTO doApi() throws CancellationException {
-        System.out.println("AAAA");
         Session ongoingSession = dataManager.getCurrentSession();
 
         System.out.println(ongoingSession);
@@ -90,6 +89,7 @@ public class API {
 
     public void serveAPI() {
         Express app = new Express();
+        app.use(Middleware.cors());
         app.get("/", (req, res) -> {
             try {
                 UniversityDTO result = doApi();

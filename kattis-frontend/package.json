@@ -24,7 +24,8 @@
     "recharts": "^2.15.0",
     "shadcn": "^1.0.0",
     "tailwind-merge": "^2.5.5",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "universal-cors": "^0.2.8"
   },
   "devDependencies": {
     "@types/lodash": "^4.17.13",
