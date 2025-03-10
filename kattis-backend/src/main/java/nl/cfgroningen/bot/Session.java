@@ -16,6 +16,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Log
 @Data
@@ -25,7 +26,8 @@ public class Session {
   @Getter(AccessLevel.NONE)
   private Timer timer = new Timer();
 
-  private List<UniversityScoreInformation> infos = new ArrayList<>();
+  private List<UniversityScoreInformation> infos = new LinkedList<>();
+  private Map<String, Double> delta = new Hashtable<>();
 
   private Set<Map.Entry<Long, Long>> summaryMessageIds = new HashSet<>();
 
@@ -39,6 +41,21 @@ public class Session {
       // Update the session with the latest information
       dataManager.getFreshUniversityStats(bot.getOwningUniversityUrl()).whenComplete((i, e) -> {
         if (e == null) {
+          if (infos.size() > 10) {
+            infos.remove(0); // removeFirst not available
+          } else if (infos.size() == 1) {
+            delta = i.getStudents().stream().collect(Collectors.toMap(UniversityUserInformation::getName, UniversityUserInformation::getScore));
+          }
+          i.setStudents(
+            i.getStudents()
+             .stream()
+             .map(student -> {
+                student.setScore(student.getScore() - delta.getOrDefault(student.getName(), 0.0));
+                return student;
+              })
+             .limit(10)
+             .collect(Collectors.toList())
+          );
           infos.add(i);
         } else {
           log.warning("Failed to fetch university stats: " + e.getMessage());
@@ -56,6 +73,9 @@ public class Session {
     @Override
     public void run() {
       // Generate the visual summary
+      if (infos.size() == 0) {
+        return;
+      }
       BufferedImage image = visualSummaryGenerator.generateVisualSummary(infos);
 
       for (Map.Entry<Long, Long> messageUid : summaryMessageIds) {

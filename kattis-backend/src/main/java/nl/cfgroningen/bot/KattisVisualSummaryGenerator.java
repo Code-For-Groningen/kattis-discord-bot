@@ -59,6 +59,9 @@ public class KattisVisualSummaryGenerator {
         double minScore = scoreInfo.stream()
                 .flatMapToDouble(info -> info.getStudents().stream().mapToDouble(UniversityUserInformation::getScore))
                 .min().orElse(0) - 20;
+        if (minScore < -5) {
+            minScore = -5;
+        }
         double maxScore = scoreInfo.stream()
                 .flatMapToDouble(info -> info.getStudents().stream().mapToDouble(UniversityUserInformation::getScore))
                 .max().orElse(0) + 10;
@@ -98,6 +101,10 @@ public class KattisVisualSummaryGenerator {
         }
 
         int colorIndex = 0;
+        double prevY = 0;
+        double prevX = 0;
+        double prevScore = 0;
+        g.setFont(new Font("Roboto", Font.BOLD, 10));
         for (String user : uniqueUsers) {
             Color userColor = WARM_COLORS.get(colorIndex % WARM_COLORS.size());
             colorIndex++;
@@ -134,7 +141,7 @@ public class KattisVisualSummaryGenerator {
                 }
             }
 
-            // Draw user label at the end of their line
+            // Draw user label at close to the end of their line
             if (scoreInfo.size() > 0) {
                 UniversityScoreInformation lastInfo = scoreInfo.get(scoreInfo.size() - 1);
                 UniversityUserInformation lastUserInfo = lastInfo.getStudents().stream()
@@ -149,7 +156,15 @@ public class KattisVisualSummaryGenerator {
                             - (graphHeight * (lastUserInfo.getScore() - minScore) / scoreRange);
 
                     g.setColor(Color.WHITE);
-                    g.drawString(user, (int) lastX + 5, (int) lastY - 5);
+                    g.drawString(user, (int) (lastInfo.getScore() == prevScore ? prevX - 15 : lastX - 100), (int) (lastInfo.getScore() == prevScore ? prevY - 10 : lastY - 5));
+                    if (lastInfo.getScore() == prevScore) {
+                        prevY -= 10;
+                        prevX -= 15;
+                    } else {
+                        prevY = lastY - 5;
+                        prevX = lastX - 100;
+                        prevScore = lastInfo.getScore();
+                    }
                 }
             }
         }
@@ -159,7 +174,7 @@ public class KattisVisualSummaryGenerator {
         // Write name of the university
         g.setColor(Color.WHITE);
         g.setFont(new Font("Roboto", Font.BOLD, 25));
-        g.drawString(scoreInfo.get(0).getName(), GRAPH_END.x + 90, GRAPH_START.y + 30);
+        g.drawString(scoreInfo.get(0).getName(), GRAPH_END.x + 30, GRAPH_START.y + 30);
 
         // Write the number of users
         g.setFont(new Font("Roboto", Font.PLAIN, 20));
@@ -204,7 +219,7 @@ public class KattisVisualSummaryGenerator {
         int arrowYScore = GRAPH_START.y + 150 - textHeight / 2 - 5; // Adjust Y position to align with text
         int arrowXScore = GRAPH_END.x + PADDING_RIGHT + metrics.stringWidth(endScoreText) + 15;
 
-        if (startScore < endScore) {
+        if (startScore <= endScore) {
             drawLittleRoundedBoxWithArrowInIt(g, arrowXScore, arrowYScore, 20, darkGreen, lighterGreen, true);
         } else {
             drawLittleRoundedBoxWithArrowInIt(g, arrowXScore, arrowYScore, 20, darkRed, lighterRed, false);
@@ -215,7 +230,7 @@ public class KattisVisualSummaryGenerator {
         g.setFont(new Font("Roboto", Font.BOLD, 20));
         g.drawString("Top Performers", GRAPH_END.x + PADDING_RIGHT, GRAPH_START.y + 210);
 
-        g.setFont(new Font("Roboto", Font.PLAIN, 20));
+        g.setFont(new Font("Roboto", Font.PLAIN, 15));
 
         UniversityScoreInformation delta = summarySession(scoreInfo);
 
@@ -271,11 +286,14 @@ public class KattisVisualSummaryGenerator {
             oldinfo.getStudents().stream()
                     .filter(oldStudent -> oldStudent.getName().equals(student.getName()))
                     .findFirst()
-                    .ifPresentOrElse(oldStudent -> {
-                        if (!student.equals(oldStudent)) {
-                            deltaStudents.add(student);
-                        }
-                    }, () -> deltaStudents.add(student)); // New student
+                    .ifPresentOrElse(
+                        oldStudent -> {
+                            if (!student.equals(oldStudent)) {
+                                deltaStudents.add(student);
+                            }
+                        }, 
+                        () -> deltaStudents.add(student)
+                    ); // New student
         }
         info.setStudents(deltaStudents);
 
@@ -285,8 +303,9 @@ public class KattisVisualSummaryGenerator {
     public UniversityScoreInformation summarySession(List<UniversityScoreInformation> infos) {
         UniversityScoreInformation info = infos.get(0);
         UniversityScoreInformation lastInfo = infos.get(infos.size() - 1);
+        UniversityScoreInformation students = this.deltaInfo(info, lastInfo);
 
-        return this.deltaInfo(info, lastInfo);
+        return students.getStudents().size() > 0 ? students : lastInfo;
     }
 
 }
