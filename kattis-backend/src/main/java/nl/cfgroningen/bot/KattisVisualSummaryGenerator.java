@@ -156,13 +156,13 @@ public class KattisVisualSummaryGenerator {
                             - (graphHeight * (lastUserInfo.getScore() - minScore) / scoreRange);
 
                     g.setColor(Color.WHITE);
-                    g.drawString(user, (int) (lastInfo.getScore() == prevScore ? prevX - 15 : lastX - 100), (int) (lastInfo.getScore() == prevScore ? prevY - 10 : lastY - 5));
+                    g.drawString(user, (int) (lastInfo.getScore() == prevScore ? prevX - 30 : lastX - 120), (int) (lastInfo.getScore() == prevScore ? prevY - 10 : lastY - 5));
                     if (lastInfo.getScore() == prevScore) {
                         prevY -= 10;
-                        prevX -= 15;
+                        prevX -= 30;
                     } else {
                         prevY = lastY - 5;
-                        prevX = lastX - 100;
+                        prevX = lastX - 120;
                         prevScore = lastInfo.getScore();
                     }
                 }
@@ -199,7 +199,7 @@ public class KattisVisualSummaryGenerator {
         int arrowY = GRAPH_START.y + 90 - textHeight / 2 - 5; // Adjust Y position to align with text
         if (startRank > endRank) {
             drawLittleRoundedBoxWithArrowInIt(g, arrowX, arrowY, 20, darkGreen, lighterGreen, true);
-        } else {
+        } else if (startRank < endRank) {
             drawLittleRoundedBoxWithArrowInIt(g, arrowX, arrowY, 20, darkRed, lighterRed, false);
         }
 
@@ -219,9 +219,9 @@ public class KattisVisualSummaryGenerator {
         int arrowYScore = GRAPH_START.y + 150 - textHeight / 2 - 5; // Adjust Y position to align with text
         int arrowXScore = GRAPH_END.x + PADDING_RIGHT + metrics.stringWidth(endScoreText) + 15;
 
-        if (startScore <= endScore) {
+        if (startScore < endScore) {
             drawLittleRoundedBoxWithArrowInIt(g, arrowXScore, arrowYScore, 20, darkGreen, lighterGreen, true);
-        } else {
+        } else if (startScore > endScore) {
             drawLittleRoundedBoxWithArrowInIt(g, arrowXScore, arrowYScore, 20, darkRed, lighterRed, false);
         }
 
@@ -230,7 +230,7 @@ public class KattisVisualSummaryGenerator {
         g.setFont(new Font("Roboto", Font.BOLD, 20));
         g.drawString("Top Performers", GRAPH_END.x + PADDING_RIGHT, GRAPH_START.y + 210);
 
-        g.setFont(new Font("Roboto", Font.PLAIN, 15));
+        g.setFont(new Font("Roboto", Font.BOLD, 15));
 
         UniversityScoreInformation delta = summarySession(scoreInfo);
 
